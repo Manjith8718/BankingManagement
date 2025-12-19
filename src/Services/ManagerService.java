@@ -1,7 +1,9 @@
 package Services;
 import DAO.ManagerDAO;
 import Models.Manager;
+import Models.User;
 import Utils.DBConnection;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -22,7 +24,7 @@ public class ManagerService {
             case 1: managerLogin(sc);
                     break;
             case 2:
-                    if(ManagerDAO.managerExists()) {
+                    if(!ManagerDAO.managerExists()) {
                        managerRegister(sc);
                     }
                     else
@@ -36,7 +38,7 @@ public class ManagerService {
     public static void managerLogin(Scanner sc)
     {
         System.out.println("Manager Login Details Please");
-        Manager m = managerDetails(sc);
+        Manager m = loginDetails(sc);
         if(ManagerDAO.validateManager(m.getEmail(),m.getPassword()))
         {
             System.out.println("Manager Login Successful");
@@ -63,6 +65,15 @@ public class ManagerService {
         System.out.print("Please Enter Password: ");
         password = sc.next();
         System.out.println();
+        String hashed = BCrypt.hashpw(password, BCrypt.gensalt());
+        return new Manager(email,hashed);
+    }
+    public static Manager loginDetails(Scanner sc)
+    {
+        System.out.print("Please Enter Email: ");
+        String email = sc.next();
+        System.out.print("Please Enter Password: ");
+        String password = sc.next();
         return new Manager(email,password);
     }
 }

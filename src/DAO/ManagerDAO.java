@@ -2,6 +2,7 @@ package DAO;
 
 import Models.Manager;
 import Utils.DBConnection;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -47,16 +48,16 @@ public class ManagerDAO {
 
     public static boolean validateManager(String email,String password)
     {
-        String sql = "SELECT COUNT(*) FROM manager where email=? and password = ?";
+        String sql = "SELECT password FROM manager where email=?";
         try(Connection conn = DBConnection.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql);)
         {
             ps.setString(1,email);
-            ps.setString(2,password);
             ResultSet rs = ps.executeQuery();
             if(rs.next())
             {
-                return rs.getInt(1)>0;
+                String storedHash = rs.getString(1);
+                return BCrypt.checkpw(password,storedHash);
             }
         }
         catch(SQLException e)
