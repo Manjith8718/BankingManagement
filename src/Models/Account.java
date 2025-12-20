@@ -2,7 +2,7 @@ package Models;
 public class Account {
     private int accountId;
     private int userId;
-    private int accountNumber;
+    private long accountNumber;
     private int balance;
     private int pin;
     private String status;
@@ -10,7 +10,7 @@ public class Account {
 
     public Account() {}
 
-    public Account(int accountId, int userId, int accountNumber, int balance, int pin, String status, String accountType) {
+    public Account(int accountId, int userId, Long accountNumber, int balance, int pin, String status, String accountType) {
         this.accountId = accountId;
         this.userId = userId;
         this.accountNumber = accountNumber;
@@ -20,7 +20,12 @@ public class Account {
         this.accountType = accountType;
     }
 
-
+    public Account(int userId, long accountNumber,int pin,String accountType) {
+        this.userId = userId;
+        this.accountNumber = accountNumber;
+        this.pin = pin;
+        this.accountType = accountType;
+    }
 
     public int getAccountId() {
         return accountId;
@@ -38,11 +43,11 @@ public class Account {
         this.userId = userId;
     }
 
-    public int getAccountNumber() {
+    public Long getAccountNumber() {
         return accountNumber;
     }
 
-    public void setAccountNumber(int accountNumber) {
+    public void setAccountNumber(long accountNumber) {
         this.accountNumber = accountNumber;
     }
 
