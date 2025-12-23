@@ -4,13 +4,13 @@ public class Account {
     private int userId;
     private long accountNumber;
     private int balance;
-    private int pin;
+    private String pin;
     private String status;
     private String accountType;
 
     public Account() {}
 
-    public Account(int accountId, int userId, Long accountNumber, int balance, int pin, String status, String accountType) {
+    public Account(int accountId, int userId, Long accountNumber, int balance, String pin, String status, String accountType) {
         this.accountId = accountId;
         this.userId = userId;
         this.accountNumber = accountNumber;
@@ -20,7 +20,7 @@ public class Account {
         this.accountType = accountType;
     }
 
-    public Account(int userId, long accountNumber,int pin,String accountType) {
+    public Account(int userId, long accountNumber,String pin,String accountType) {
         this.userId = userId;
         this.accountNumber = accountNumber;
         this.pin = pin;
@@ -59,11 +59,11 @@ public class Account {
         this.balance = balance;
     }
 
-    public int getPin() {
+    public String getPin() {
         return pin;
     }
 
-    public void setPin(int pin) {
+    public void setPin(String pin) {
         this.pin = pin;
     }
 
