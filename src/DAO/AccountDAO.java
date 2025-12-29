@@ -86,11 +86,10 @@ public class AccountDAO {
          return false;
      }
 
-     public static boolean creditAmount(long accountNumber,int amount)
+     public static boolean creditAmount(Connection con,long accountNumber,int amount)
      {
          String sql = "update accounts set balance = balance + ? where account_number = ?";
-         try(Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);)
+         try(PreparedStatement ps = con.prepareStatement(sql);)
          {
               ps.setInt(1,amount);
               ps.setLong(2,accountNumber);
@@ -103,15 +102,34 @@ public class AccountDAO {
          return false;
      }
 
-    public static boolean debitAmount(long accountNumber,int amount)
+    public static boolean debitAmount(Connection con,long accountNumber,int amount)
     {
         String sql = "update accounts set balance = balance - ? where account_number = ?";
-        try(Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql);)
+        try(PreparedStatement ps = con.prepareStatement(sql);)
         {
             ps.setInt(1,amount);
             ps.setLong(2,accountNumber);
             return ps.executeUpdate() > 0;
+        }
+        catch(SQLException e)
+        {
+            System.out.println(e.getMessage());
+        }
+        return false;
+    }
+
+    public static boolean accountStatus(long accountNumber)
+    {
+        String sql = "select status from accounts where account_number = ?";
+        try(Connection conn = DBConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);)
+        {
+            ps.setLong(1,accountNumber);
+            ResultSet rs = ps.executeQuery();
+            if(rs.next())
+            {
+                return "ACTIVE".equals(rs.getString("status"));
+            }
         }
         catch(SQLException e)
         {

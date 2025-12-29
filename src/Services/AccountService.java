@@ -20,6 +20,7 @@ public class AccountService {
         System.out.println("3.Debit Money");
         System.out.println("4.Transfer Money To Other Account");
         System.out.println("5.Create Pin");
+        System.out.println("6.Transaction History");
         System.out.print("Your Option Please: ");
         int option = sc.nextInt();
         System.out.println();
@@ -28,13 +29,13 @@ public class AccountService {
             case 1: createAccount(sc);
                 break;
             case 2: creditMoney(sc);
-                break;
+                    break;
             case 3: debitMoney(sc);
-                break;
+                    break;
             case 4: transferMoney(sc);
-                break;
+                    break;
             case 5 : changePin(sc);
-                break;
+                     break;
             default:System.out.println("Enter Valid Option");
         }
     }
@@ -52,129 +53,158 @@ public class AccountService {
     }
     public static void creditMoney(Scanner sc)
     {
-        System.out.println("welcome user to credit page");
-        System.out.print("Please Enter Account Number: ");
-        long accountNumber = sc.nextLong();
-        if(!AccountDAO.validAccount(accountNumber))
-        {
-            System.out.println("AccountNumber Does not Exist Please Recheck It");
-            return;
-        }
+        try {
+            Connection con = DBConnection.getConnection();
+            con.setAutoCommit(false);
+            System.out.println("welcome user to credit page");
+            System.out.print("Please Enter Account Number: ");
+            long accountNumber = sc.nextLong();
+            if (!AccountDAO.validAccount(accountNumber)) {
+                System.out.println("AccountNumber Does not Exist Please Recheck It");
+                con.close();
+                return;
+            }
+            if(AccountDAO.accountStatus(accountNumber))
+            {
+                System.out.println("Account Is Freezed, Please Contact Manager");
+                con.close();
+                return;
+            }
+            System.out.print("Please Enter Required Amount To Credit");
+            int creditamount = sc.nextInt();
+            if (creditamount <= 0) {
+                System.out.println("Amount must be greater than zero");
+                con.close();
+                return;
+            }
 
-        System.out.print("Please Enter Required Amount To Credit");
-        int creditamount = sc.nextInt();
-        if(creditamount<=0)
-        {
-            System.out.println("Amount must be greater than zero");
-            return;
-        }
+            System.out.print("Please Enter Your 4 Digit Pin Number : ");
+            String pin = sc.next();
+            if (pin.matches("\\d{4}")) {
+                System.out.print("Wrong Format Pin Should Be Exactly 4 Digits");
+                con.close();
+                return;
+            }
+            if (!AccountDAO.validatePin(accountNumber, pin)) {
+                System.out.print("Wrong Pin Entered, Please Recheck");
 
-        System.out.print("Please Enter Your 4 Digit Pin Number : ");
-        String pin = sc.next();
-        if(pin.matches("\\d{4}"))
-        {
-            System.out.print("Wrong Format Pin Should Be Exactly 4 Digits");
-            return;
+                con.close();
+                return;
+            }
+            if (AccountDAO.creditAmount(con, accountNumber, creditamount)) {
+                con.commit();
+                System.out.printf("%d Amount Credited Successfully From Your Account", creditamount);
+            } else {
+                con.rollback();
+                System.out.print("Failed To Credit From Your Account");
+            }
         }
-        if(!AccountDAO.validatePin(accountNumber,pin))
+        catch(SQLException e)
         {
-            System.out.print("Wrong Pin Entered, Please Recheck");
-            return;
-        }
-        if(AccountDAO.creditAmount(accountNumber,creditamount))
-        {
-            System.out.printf("%d Amount Credited Successfully From Your Account",creditamount);
-        }
-        else
-        {
-            System.out.print("Failed To Credit From Your Account");
+            System.out.println("error in creditMoney method");
         }
     }
 
     public static void debitMoney(Scanner sc)
     {
-        System.out.println("welcome to user to debit money");
-        System.out.print("Please Enter Account Number: ");
-        long accountNumber = sc.nextLong();
-        if(!AccountDAO.validAccount(accountNumber))
-        {
-            System.out.println("AccountNumber Does not Exist Please Recheck It");
-            return;
-        }
+        try {
+            Connection con = DBConnection.getConnection();
+            con.setAutoCommit(false);
+            System.out.println("welcome to user to debit money");
+            System.out.print("Please Enter Account Number: ");
+            long accountNumber = sc.nextLong();
+            if (!AccountDAO.validAccount(accountNumber)) {
+                System.out.println("AccountNumber Does not Exist Please Recheck It");
+                con.close();
+                return;
+            }
 
-        System.out.print("Please Enter Required Amount To Debit");
-        int debitamount = sc.nextInt();
-        if(debitamount<=0)
-        {
-            System.out.println("Amount must be greater than zero");
-            return;
-        }
+            System.out.print("Please Enter Required Amount To Debit");
+            int debitamount = sc.nextInt();
+            if (debitamount <= 0) {
+                System.out.println("Amount must be greater than zero");
+                con.close();
+                return;
+            }
 
-        System.out.print("Please Enter Your 4 Digit Pin Number : ");
-        String pin = sc.next();
-        if(!pin.matches("\\d{4}"))
-        {
-            System.out.print("Wrong Format Pin Should Be Exactly 4 Digits");
-            return;
+            System.out.print("Please Enter Your 4 Digit Pin Number : ");
+            String pin = sc.next();
+            if (!pin.matches("\\d{4}")) {
+                System.out.print("Wrong Format Pin Should Be Exactly 4 Digits");
+                con.close();
+                return;
+            }
+            if (!AccountDAO.validatePin(accountNumber, pin)) {
+                System.out.print("Wrong Pin Entered, Please Recheck");
+                con.close();
+                return;
+            }
+            if (AccountDAO.debitAmount(con, accountNumber, debitamount)) {
+                con.commit();
+                System.out.printf("%d Amount Debited Successfully From Your Account", debitamount);
+            } else {
+                con.rollback();
+                System.out.print("Failed To Credit From Your Account");
+            }
         }
-        if(!AccountDAO.validatePin(accountNumber,pin))
+        catch(SQLException e)
         {
-            System.out.print("Wrong Pin Entered, Please Recheck");
-            return;
-        }
-        if(AccountDAO.debitAmount(accountNumber,debitamount))
-        {
-            System.out.printf("%d Amount Debited Successfully From Your Account",debitamount);
-        }
-        else
-        {
-            System.out.print("Failed To Credit From Your Account");
+            System.out.println("error in debitMoney method");
         }
     }
 
     public static void transferMoney(Scanner sc)
     {
-        System.out.println("welcome to user to transfer money to other account");
-        System.out.print("Please Enter Account Number: ");
-        long accountNumber = sc.nextLong();
-        if(!AccountDAO.validAccount(accountNumber))
-        {
-            System.out.println("Your AccountNumber Does not Exist Please Recheck It");
-            return;
+        try {
+            Connection con = DBConnection.getConnection();
+            con.setAutoCommit(false);
+            System.out.println("welcome to user to transfer money to other account");
+            System.out.print("Please Enter Account Number: ");
+            long accountNumber = sc.nextLong();
+            if (!AccountDAO.validAccount(accountNumber)) {
+                System.out.println("Your AccountNumber Does not Exist Please Recheck It");
+                con.close();
+                return;
+            }
+            System.out.print("Please Enter Receiver Account Number: ");
+            long receiverNumber = sc.nextLong();
+            if (!AccountDAO.validAccount(accountNumber)) {
+                System.out.println("Your ReceiverNumber Does not Exist Please Recheck It");
+                con.close();
+                return;
+            }
+            System.out.print("Please Enter Your 4 Digit Pin Number : ");
+            String pin = sc.next();
+            if (!pin.matches("\\d{4}")) {
+                System.out.print("Wrong Format Pin Should Be Exactly 4 Digits");
+                con.close();
+                return;
+            }
+            if (!AccountDAO.validatePin(accountNumber, pin)) {
+                System.out.print("Wrong Pin Entered, Please Recheck");
+                con.close();
+                return;
+            }
+            System.out.print("Please Enter  Amount To Transfer");
+            int transferamount = sc.nextInt();
+            if (transferamount <= 0) {
+                System.out.println("Amount must be greater than zero");
+                con.close();
+                return;
+            }
+            if (AccountDAO.debitAmount(con, accountNumber, transferamount) && AccountDAO.creditAmount(con, receiverNumber,transferamount)) {
+                con.commit();
+                System.out.println("Transfer is Success");
+            } else {
+                con.rollback();
+                System.out.println("Transfer is Fail");
+            }
+            con.setAutoCommit(true);
+            con.close();
         }
-        System.out.print("Please Enter Receiver Account Number: ");
-        long receiverNumber = sc.nextLong();
-        if(!AccountDAO.validAccount(accountNumber))
+        catch(SQLException e)
         {
-            System.out.println("Your ReceiverNumber Does not Exist Please Recheck It");
-            return;
-        }
-        System.out.print("Please Enter Your 4 Digit Pin Number : ");
-        String pin = sc.next();
-        if(!pin.matches("\\d{4}"))
-        {
-            System.out.print("Wrong Format Pin Should Be Exactly 4 Digits");
-            return;
-        }
-        if(!AccountDAO.validatePin(accountNumber,pin))
-        {
-            System.out.print("Wrong Pin Entered, Please Recheck");
-            return;
-        }
-        System.out.print("Please Enter  Amount To Transfer");
-        int transferamount = sc.nextInt();
-        if(transferamount<=0)
-        {
-            System.out.println("Amount must be greater than zero");
-            return;
-        }
-        if(AccountDAO.debitAmount(receiverNumber,transferamount) && AccountDAO.creditAmount(accountNumber,transferamount))
-        {
-            System.out.println("Transfer is Success");
-        }
-        else
-        {
-            System.out.println("Transfer is Fail");
+            System.out.println("error in transferMoney method");
         }
     }
 
